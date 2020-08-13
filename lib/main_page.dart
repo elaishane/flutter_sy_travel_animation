@@ -18,7 +18,12 @@ class PageOffsetNotifier with ChangeNotifier {
   double get page => _page;
 }
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
+  @override
+  _MainPageState createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
   final PageController _pageController = PageController();
 
   @override
@@ -26,18 +31,23 @@ class MainPage extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => PageOffsetNotifier(_pageController),
       child: Scaffold(
-        body: Stack(
-          children: [
-            PageView(
-              controller: _pageController,
-              physics: ClampingScrollPhysics(),
-              children: [
-                LeopardPage(),
-                VulturePage(),
-              ],
-            ),
-            LeopardImage(),
-          ],
+        body: SafeArea(
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              PageView(
+                controller: _pageController,
+                physics: ClampingScrollPhysics(),
+                children: [
+                  LeopardPage(),
+                  VulturePage(),
+                ],
+              ),
+              AppBar(),
+              LeopardImage(),
+              VultureImage(),
+            ],
+          ),
         ),
       ),
     );
@@ -47,20 +57,93 @@ class MainPage extends StatelessWidget {
 class LeopardImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Image.asset("assets/leopard.png");
+    return Consumer<PageOffsetNotifier>(
+      builder: (context, notifier, child) {
+        return Positioned(
+          left: -0.85 * notifier.offset,
+          width: MediaQuery.of(context).size.width * 1.6,
+          child: child,
+        );
+      },
+      child: IgnorePointer(child: Image.asset("assets/leopard.png")),
+    );
+  }
+}
+
+class VultureImage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PageOffsetNotifier>(
+      builder: (context, notifier, child) {
+        return Positioned(
+          left:
+              1.20 * MediaQuery.of(context).size.width - 0.85 * notifier.offset,
+          child: child,
+        );
+      },
+      child: IgnorePointer(
+          child: Padding(
+        padding: const EdgeInsets.only(bottom: 90.0),
+        child: Image.asset(
+          "assets/vulture.png",
+          height: MediaQuery.of(context).size.height / 3,
+        ),
+      )),
+    );
+  }
+}
+
+class AppBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 8.0,
+          horizontal: 24.0,
+        ),
+        child: Row(
+          children: [
+            Text(
+              "SY",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18.0,
+              ),
+            ),
+            Spacer(),
+            Icon(
+              Icons.menu,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class LeopardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Image.asset("assets/leopard.png");
+    return Container();
   }
 }
 
 class VulturePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Image.asset("assets/vulture.png");
+    return Container();
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: Image.asset(
+          "assets/vulture.png",
+          height: MediaQuery.of(context).size.height / 3,
+        ),
+      ),
+    );
   }
 }
