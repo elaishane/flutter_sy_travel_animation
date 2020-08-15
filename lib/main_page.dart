@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_sy_travel_animation/leopard_page.dart';
 import 'package:flutter_sy_travel_animation/styles.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class PageOffsetNotifier with ChangeNotifier {
@@ -28,41 +27,65 @@ class MainPage extends StatefulWidget {
   _MainPageState createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage>
+    with SingleTickerProviderStateMixin {
+  AnimationController _animationController;
   final PageController _pageController = PageController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(
+        milliseconds: 1000,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _animationController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => PageOffsetNotifier(_pageController),
-      child: Scaffold(
-        body: SafeArea(
-          child: Stack(
-            alignment: Alignment.centerLeft,
-            children: [
-              PageView(
-                controller: _pageController,
-                physics: ClampingScrollPhysics(),
-                children: [
-                  LeopardPage(),
-                  VulturePage(),
-                ],
-              ),
-              AppBar(),
-              LeopardImage(),
-              VultureImage(),
-              ShareButton(),
-              PageIndicator(),
-              ArrowIcon(),
-              TravelDetailsLabel(),
-              StartCampLabel(),
-              StartTimeLabel(),
-              BaseCampLabel(),
-              BaseTimeLabel(),
-              DistanceLabel(),
-              TravelDots(),
-              MapButton(),
-            ],
+      child: ListenableProvider.value(
+        value: _animationController,
+        child: Scaffold(
+          body: SafeArea(
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                PageView(
+                  controller: _pageController,
+                  physics: ClampingScrollPhysics(),
+                  children: [
+                    LeopardPage(),
+                    VulturePage(),
+                  ],
+                ),
+                AppBar(),
+                LeopardImage(),
+                VultureImage(),
+                ShareButton(),
+                PageIndicator(),
+                ArrowIcon(),
+                TravelDetailsLabel(),
+                StartCampLabel(),
+                StartTimeLabel(),
+                BaseCampLabel(),
+                BaseTimeLabel(),
+                DistanceLabel(),
+                TravelDots(),
+                MapButton(),
+              ],
+            ),
           ),
         ),
       ),
@@ -73,9 +96,14 @@ class _MainPageState extends State<MainPage> {
 class ArrowIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 128.0 + 400 + 32 - 1.5,
-      right: 24.0,
+    return Consumer<AnimationController>(
+      builder: (context, animation, child) {
+        return Positioned(
+          top: (1 - animation.value) * (128.0 + 400 + 32 - 4),
+          right: 24.0,
+          child: child,
+        );
+      },
       child: Icon(
         Icons.keyboard_arrow_up,
         size: 28.0,
@@ -266,7 +294,7 @@ class StartTimeLabel extends StatelessWidget {
       child: Align(
         alignment: Alignment.centerRight,
         child: Text(
-          DateFormat.jm().format(DateTime.now()),
+          "02:30 pm",
           style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w300),
         ),
       ),
@@ -438,25 +466,28 @@ class MapButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-        left: 8,
-        bottom: 0,
-        child: Consumer<PageOffsetNotifier>(
-          builder: (context, notifier, child) {
-            double opacity = math.max(0, 4 * notifier.page - 3);
-            return Opacity(
-              opacity: opacity,
-              child: child,
-            );
+      left: 8,
+      bottom: 0,
+      child: Consumer<PageOffsetNotifier>(
+        builder: (context, notifier, child) {
+          double opacity = math.max(0, 4 * notifier.page - 3);
+          return Opacity(
+            opacity: opacity,
+            child: child,
+          );
+        },
+        child: FlatButton(
+          onPressed: () {
+            Provider.of<AnimationController>(context, listen: false).forward();
           },
-          child: FlatButton(
-            onPressed: () {},
-            child: Text(
-              "ON MAP",
-              style: TextStyle(
-                fontSize: 14,
-              ),
+          child: Text(
+            "ON MAP",
+            style: TextStyle(
+              fontSize: 14,
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
